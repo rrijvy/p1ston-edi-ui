@@ -11,6 +11,11 @@ interface IQueryCommandOutput<T> extends Omit<QueryCommandOutput, "Items"> {
   Items?: T[];
 }
 
+export interface IDynamodbFilter {
+  filterExpression: string;
+  attributes: Record<string, string>;
+}
+
 class DynamoDbQueryExecutor extends DynamoDbErrorHandler {
   private readonly client: DynamoDBClient;
   private readonly documentClient: DynamoDBDocumentClient;
@@ -53,6 +58,46 @@ class DynamoDbQueryExecutor extends DynamoDbErrorHandler {
           ":pk": primaryKey,
           ":sk": sortKeyPrefix,
         },
+      });
+      const response = await this.documentClient.send(command);
+      return response as IQueryCommandOutput<T>;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  public async GetListFromDynamoWithFilter<T>(
+    primaryKey: string,
+    sortKeyPrefix: string,
+    filterAttributes: Record<string, string>
+  ): Promise<IQueryCommandOutput<T>> {
+    try {
+      const expressionAttributeNames: Record<string, string> = {
+        "#pk": "p1stonId",
+        "#sk": "p1stonType",
+      };
+      const expressionAttributeValues: Record<string, string> = {
+        ":pk": primaryKey,
+        ":sk": sortKeyPrefix,
+      };
+      let filterExpression = "";
+      if (filterAttributes) {
+        let index = 1;
+        for (const key in filterAttributes) {
+          const value = filterAttributes[key];
+          expressionAttributeNames[`#v${index}`] = key;
+          expressionAttributeValues[`:v${index}`] = value;
+          if (filterExpression) filterExpression += `and #v${index} = :v${index}`;
+          else filterExpression += `#v${index} = :v${index}`;
+          index++;
+        }
+      }
+      const command = new QueryCommand({
+        TableName: this.tableName,
+        KeyConditionExpression: "#pk = :pk AND begins_with(#sk, :sk)",
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        FilterExpression: filterExpression,
       });
       const response = await this.documentClient.send(command);
       return response as IQueryCommandOutput<T>;

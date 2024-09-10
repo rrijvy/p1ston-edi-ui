@@ -20,6 +20,15 @@ abstract class BaseRepository {
     return response.Items as Array<T>;
   };
 
+  GetListFromDynamoWithFilter = async <T extends object>(
+    p1stonId: string,
+    p1stonTypePrefix: string,
+    filterAttributes: Record<string, string>
+  ) => {
+    const response = await this.dynamodbQueryExecutor.GetListFromDynamoWithFilter(p1stonId, p1stonTypePrefix, filterAttributes);
+    return response.Items as Array<T>;
+  };
+
   AddRecordInDynamo = async <T extends object>(item: StrictObject<T>) => {
     await this.dynamoDbWriteExecutor.AddRecordInDynamo(item);
   };
