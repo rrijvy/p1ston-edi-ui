@@ -11,7 +11,7 @@ export default async function Home() {
   );
   const emailBasicItems = response.filter((x) => x.p1stonType?.match(/^EMAIL:[a-zA-Z0-9]+$/));
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto font-mono">
       <EmailDataTable renderItem={emailBasicItems} dbItems={response} />
     </div>
   );
