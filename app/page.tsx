@@ -9,6 +9,7 @@ export default async function Home() {
     Constants.EmailP1stonId,
     Constants.EmailP1stonTypePrefix
   );
+  console.log(response);
   const emailBasicItems = response.filter((x) => x.p1stonType?.match(/^EMAIL:[a-zA-Z0-9]+$/));
   return (
     <div className="container mx-auto font-mono">
